@@ -74,10 +74,8 @@ end
 function solve_DFJ(nombre_aerodromes, depart, arrivee, distances, nombre_min_aerodromes, nombre_regions, regions, rayon)
     model = Model(Gurobi.Optimizer)
     set_silent(model)
-
     # Variables : x[i,j] = 1 si l'arc (i, j) est dans le chemin, 0 sinon
     @variable(model, x[1:nombre_aerodromes, 1:nombre_aerodromes], Bin)
-
     # Fonction objectif : minimiser la distance totale
     @objective(model, Min, sum(distances[i, j] * x[i, j] for i in 1:nombre_aerodromes, j in 1:nombre_aerodromes))
 
@@ -89,7 +87,6 @@ function solve_DFJ(nombre_aerodromes, depart, arrivee, distances, nombre_min_aer
             end
         end
     end
-
 
     # conservation du nombre d'arcs entrants et sortants sauf pour le depart et l'arrivee
     for i in 1:nombre_aerodromes
@@ -103,10 +100,8 @@ function solve_DFJ(nombre_aerodromes, depart, arrivee, distances, nombre_min_aer
 
     end
 
-
     # Contrainte de nombre minimal d'aérodromes à visiter
     @constraint(model, sum(sum(x[i, j] for j in 1:nombre_aerodromes if j != i) for i in 1:nombre_aerodromes) >= nombre_min_aerodromes)
-
 
     # Contrainte de régions
     for r in 0:nombre_regions
@@ -145,11 +140,8 @@ function solve_DFJ(nombre_aerodromes, depart, arrivee, distances, nombre_min_aer
             optimize!(model)
         end
     end
-
-
     # Affiche la solution finale
     println("Distance minimale parcourue : ", objective_value(model))
-
     # renvoie la solution
     return value.(x)
 end
