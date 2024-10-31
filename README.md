@@ -14,5 +14,5 @@ Les méthodes comparées :
 - Reformulation-linearization based formulation ( RLT )
 - Formulation Generalized Cutset inequalities ( GCS )
 
-
+Les formulation sont presentées dans [Integer programming formulations for the elementary shortest path problem](https://www.sciencedirect.com/science/article/abs/pii/S0377221716000084?via%3Dihub)
 
