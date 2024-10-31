@@ -1,4 +1,4 @@
-
+# map between filepaths and instance names
 intances_to_paths = Dict(
     "instance_6_1" => "Instances/instance_6_1.txt",
     "instance_20_1" => "Instances/instance_20_1.txt",
@@ -47,5 +47,5 @@ end
 
 
 function distance(a, b)
-    return sqrt((a[1] - b[1])^2 + (a[2] - b[2])^2)
+    return floor(sqrt((a[1] - b[1])^2 + (a[2] - b[2])^2))
 end
