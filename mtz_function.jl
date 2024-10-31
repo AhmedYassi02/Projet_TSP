@@ -35,8 +35,10 @@ function solve_MTZ(nombre_aerodromes, depart, arrivee, distances, nombre_min_aer
         @constraint(model, x[i, i] == 0)
     end
 
+    #### Contraintes supplémentaires du problème ####
+
     # Contrainte de nombre minimal d'aérodromes à visiter
-    @constraint(model, sum(sum(x[i, j] for j in 1:nombre_aerodromes if j != i) for i in 1:nombre_aerodromes) >= nombre_min_aerodromes)
+    @constraint(model, sum(sum(x[i, j] for j in 1:nombre_aerodromes if j != i) for i in 1:nombre_aerodromes) >= nombre_min_aerodromes - 1)
 
 
     # Contrainte des régions
@@ -47,9 +49,7 @@ function solve_MTZ(nombre_aerodromes, depart, arrivee, distances, nombre_min_aer
     # Contrainte de rayon maximal
     for i in 1:nombre_aerodromes
         for j in 1:nombre_aerodromes
-            if distances[i, j] > rayon
-                @constraint(model, x[i, j] == 0)
-            end
+            @constraint(model, x[i, j] * distances[i, j] <= rayon)
         end
     end
 
