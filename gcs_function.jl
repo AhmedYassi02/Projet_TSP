@@ -99,5 +99,5 @@ function solve_GCS(nombre_aerodromes, depart, arrivee, distances, nombre_min_aer
 
     # Print the final solution
     println("Minimum distance traveled: ", objective_value(model))
-    return value.(x)
+    return model
 end

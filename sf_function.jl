@@ -1,18 +1,31 @@
 
 using JuMP, Gurobi
 
-function solve_SF(nombre_aerodromes, depart, arrivee, distances, nombre_min_aerodromes, nombre_regions, regions, rayon)
+function solve_SF(nombre_aerodromes, depart, arrivee, distances, nombre_min_aerodromes, nombre_regions, regions, rayon, relax=false)
     model = Model(Gurobi.Optimizer)
     set_silent(model)
 
     #### Contraintes de base ####
 
-    # Variables : x[i,j] = 1 si l'arc (i, j) est dans le chemin, 0 sinon
-    @variable(model, x[1:nombre_aerodromes, 1:nombre_aerodromes], Bin)
+    if relax
+        @variable(model, x[1:nombre_aerodromes, 1:nombre_aerodromes])
+        @variable(model, z[1:nombre_aerodromes])
+        for i in 1:nombre_aerodromes, j in 1:nombre_aerodromes
+            @constraint(model, x[i, j] >= 0)
+            @constraint(model, x[i, j] <= 1)
+        end
 
-    # SF auxiliary variables:
+        for k in 1:nombre_aerodromes
+            @constraint(model, z[k] >= 0)
+            @constraint(model, z[k] <= 1)
+        end
+    else
+        @variable(model, z[1:nombre_aerodromes], Bin)
+        @variable(model, x[1:nombre_aerodromes, 1:nombre_aerodromes], Bin)
+    end
+
     @variable(model, q[1:nombre_aerodromes, 1:nombre_aerodromes] >= 0)
-    @variable(model, z[1:nombre_aerodromes], Bin)
+
 
     # Objective function: minimize the total distance
     @objective(model, Min, sum(distances[i, j] * x[i, j] for i in 1:nombre_aerodromes, j in 1:nombre_aerodromes))
@@ -87,5 +100,5 @@ function solve_SF(nombre_aerodromes, depart, arrivee, distances, nombre_min_aero
     println("Minimum distance traveled: ", objective_value(model))
 
 
-    return value.(x)
+    return model
 end

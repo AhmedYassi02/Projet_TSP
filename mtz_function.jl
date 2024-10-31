@@ -1,15 +1,26 @@
 
 using JuMP, Gurobi
 
-function solve_MTZ(nombre_aerodromes, depart, arrivee, distances, nombre_min_aerodromes, nombre_regions, regions, rayon)
+function solve_MTZ(nombre_aerodromes, depart, arrivee, distances, nombre_min_aerodromes, nombre_regions, regions, rayon, relax=false)
     model = Model(Gurobi.Optimizer)
-    set_silent(model)
 
     # Variables : x[i,j] = 1 si l'arc (i, j) est dans le chemin, 0 sinon
-    @variable(model, x[1:nombre_aerodromes, 1:nombre_aerodromes], Bin)
+    if relax
+        @variable(model, x[1:nombre_aerodromes, 1:nombre_aerodromes])
 
-    # MTZ auxiliary variables: u[i] represents the order of each node i in the path
-    @variable(model, u[1:nombre_aerodromes] >= 0, Int)
+        @variable(model, u[1:nombre_aerodromes] >= 0)
+
+        for i in 1:nombre_aerodromes, j in 1:nombre_aerodromes
+            @constraint(model, x[i, j] >= 0)
+            @constraint(model, x[i, j] <= 1)
+        end
+    else
+        @variable(model, x[1:nombre_aerodromes, 1:nombre_aerodromes], Bin)
+        @variable(model, u[1:nombre_aerodromes] >= 0, Int)
+    end
+
+
+
 
     # Objective function: minimize the total distance
     @objective(model, Min, sum(distances[i, j] * x[i, j] for i in 1:nombre_aerodromes, j in 1:nombre_aerodromes))
@@ -24,7 +35,6 @@ function solve_MTZ(nombre_aerodromes, depart, arrivee, distances, nombre_min_aer
             @constraint(model, sum(x[i, j] for j in 1:nombre_aerodromes if j != i) - sum(x[j, i] for j in 1:nombre_aerodromes if j != i) == -1)
         end
     end
-
 
     # on peut pas aller de arrivee a depart
     @constraint(model, x[arrivee, depart] == 0)
@@ -69,5 +79,5 @@ function solve_MTZ(nombre_aerodromes, depart, arrivee, distances, nombre_min_aer
     optimize!(model)
     println("Minimum distance traveled: ", objective_value(model))
 
-    return value.(x)
+    return model
 end

@@ -3,16 +3,21 @@
 using JuMP, Gurobi
 include("dfj_function.jl")
 include("mtz_function.jl")
-include("rtl_function.jl")
+include("rlt_function.jl")
+include("gcs_function.jl")
+include("sf_function.jl")
 include("utils.jl")
 
-
-# map between filepaths and instance names
-
-
-
-instance = "instance_6_1"
+relax = false
+# choisir une instance
+instance = "instance_100_1"
 println("Reading instance from ", intances_to_paths[instance])
+
+#  choisir une Fonction de résolution
+methode = "RLT"
+println("Using ", methode, " method")
+formulation = methode == "RLT" ? solve_RTL : methode == "MTZ" ? solve_MTZ : methode == "DFJ" ? solve_DFJ : methode == "GCS" ? solve_GCS : methode == "SF" ? solve_SF : error("Methode inconnue")
+
 
 nombre_aerodromes, depart, arrivee, nombre_min_aerodromes, nombre_regions, regions, rayon, coordonnees = read_instance(intances_to_paths[instance])
 
@@ -26,7 +31,7 @@ println("rayon max = ", rayon)
 println("coordonnees de chaque aerodrome = ", coordonnees)
 
 
-# calcul des distances entre les aerodromes
+# calcul des distances entre les aerodromes (matrice des distances)
 distances = zeros(nombre_aerodromes, nombre_aerodromes)
 for i in 1:nombre_aerodromes
     for j in 1:nombre_aerodromes
@@ -35,11 +40,15 @@ for i in 1:nombre_aerodromes
 end
 
 
-x = solve_RTL(nombre_aerodromes, depart, arrivee, distances, nombre_min_aerodromes, nombre_regions, regions, rayon)
-# print("Sous-tours : ", detect_subtour(x))
+model = formulation(nombre_aerodromes, depart, arrivee, distances, nombre_min_aerodromes, nombre_regions, regions, rayon, relax)
 
-# stocker la solution dans un fichier dans "Instances/solutions/solution_"instance".txt"
-path_solution = "Instances/solutions/solution_" * instance * ".txt"
+x = value.(model[:x])
+objective = objective_value(model)
+# mip_gap = MOI.get(model, MOI.MIPGap())
+solving_time = solve_time(model)
+
+# stocker la solution dans un fichier
+path_solution = "Instances/solutions/solution_" * instance * "_" * methode * ".txt"
 f = open(path_solution, "w")
 for i in 1:nombre_aerodromes-1
     for j in 1:nombre_aerodromes-1
@@ -51,3 +60,12 @@ for j in 1:nombre_aerodromes-1
     write(f, string(x[nombre_aerodromes, j]) * " ")
 end
 write(f, string(x[nombre_aerodromes, nombre_aerodromes]))
+
+# write model performance, time, gap to relaxed solution, ...
+write(f, "\n")
+write(f, "Objective value: " * string(objective) * "\n")
+# write(f, "MIP gap: " * string(mip_gap) * "\n")
+write(f, "Solving time: " * string(solving_time) * "s\n")
+
+
+close(f)
