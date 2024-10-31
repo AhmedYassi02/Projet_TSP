@@ -1,4 +1,18 @@
 
+intances_to_paths = Dict(
+    "instance_6_1" => "Instances/instance_6_1.txt",
+    "instance_20_1" => "Instances/instance_20_1.txt",
+    "instance_20_2" => "Instances/instance_20_2.txt",
+    "instance_20_3" => "Instances/instance_20_3.txt",
+    "instance_30_1" => "Instances/instance_30_1.txt",
+    "instance_40_1" => "Instances/instance_40_1.txt",
+    "instance_50_1" => "Instances/instance_50_1.txt",
+    "instance_70_1" => "Instances/instance_70_1.txt",
+    "instance_80_1" => "Instances/instance_80_1.txt",
+    "instance_80_2" => "Instances/instance_80_2.txt",
+    "instance_100_1" => "Instances/instance_100_1.txt",
+)
+
 function lire_ligne_non_vide(f)
     ligne = readline(f)
     while isempty(strip(ligne)) && !eof(f)

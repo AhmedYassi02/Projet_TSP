@@ -3,26 +3,15 @@
 using JuMP, Gurobi
 include("dfj_function.jl")
 include("mtz_function.jl")
+include("rtl_function.jl")
 include("utils.jl")
 
 
 # map between filepaths and instance names
-intances_to_paths = Dict(
-    "instance_6_1" => "Instances/instance_6_1.txt",
-    "instance_20_1" => "Instances/instance_20_1.txt",
-    "instance_20_2" => "Instances/instance_20_2.txt",
-    "instance_20_3" => "Instances/instance_20_3.txt",
-    "instance_30_1" => "Instances/instance_30_1.txt",
-    "instance_40_1" => "Instances/instance_40_1.txt",
-    "instance_50_1" => "Instances/instance_50_1.txt",
-    "instance_70_1" => "Instances/instance_70_1.txt",
-    "instance_80_1" => "Instances/instance_80_1.txt",
-    "instance_80_2" => "Instances/instance_80_2.txt",
-    "instance_100_1" => "Instances/instance_100_1.txt",
-)
 
 
-instance = "instance_80_1"
+
+instance = "instance_6_1"
 println("Reading instance from ", intances_to_paths[instance])
 
 nombre_aerodromes, depart, arrivee, nombre_min_aerodromes, nombre_regions, regions, rayon, coordonnees = read_instance(intances_to_paths[instance])
@@ -46,7 +35,7 @@ for i in 1:nombre_aerodromes
 end
 
 
-x = solve_MTZ(nombre_aerodromes, depart, arrivee, distances, nombre_min_aerodromes, nombre_regions, regions, rayon)
+x = solve_RTL(nombre_aerodromes, depart, arrivee, distances, nombre_min_aerodromes, nombre_regions, regions, rayon)
 # print("Sous-tours : ", detect_subtour(x))
 
 # stocker la solution dans un fichier dans "Instances/solutions/solution_"instance".txt"
