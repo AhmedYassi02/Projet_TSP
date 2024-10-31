@@ -67,14 +67,6 @@ function solve_DFJ(nombre_aerodromes, depart, arrivee, distances, nombre_min_aer
     # Fonction objectif : minimiser la distance totale
     @objective(model, Min, sum(distances[i, j] * x[i, j] for i in 1:nombre_aerodromes, j in 1:nombre_aerodromes))
 
-    # Contrainte de rayon maximal
-    for i in 1:nombre_aerodromes
-        for j in 1:nombre_aerodromes
-            if distances[i, j] > rayon
-                @constraint(model, x[i, j] == 0)
-            end
-        end
-    end
 
     # conservation du nombre d'arcs entrants et sortants sauf pour le depart et l'arrivee
     for i in 1:nombre_aerodromes
@@ -88,14 +80,9 @@ function solve_DFJ(nombre_aerodromes, depart, arrivee, distances, nombre_min_aer
 
     end
 
-    # Contrainte de nombre minimal d'aérodromes à visiter
-    @constraint(model, sum(sum(x[i, j] for j in 1:nombre_aerodromes if j != i) for i in 1:nombre_aerodromes) >= nombre_min_aerodromes)
-
-    # Contrainte de régions
-    for r in 0:nombre_regions
-        @constraint(model, sum(x[i, j] for i in 1:nombre_aerodromes, j in 1:nombre_aerodromes if regions[i] == r || regions[j] == r) >= 1)
-    end
-
+    # on peut pas aller de arrivee a depart
+    @constraint(model, x[arrivee, depart] == 0)
+    @constraint(model, x[depart, arrivee] == 0)
 
     # on ne peut pas visiter un aerodrome plus d'une fois
     for i in 1:nombre_aerodromes
@@ -110,9 +97,24 @@ function solve_DFJ(nombre_aerodromes, depart, arrivee, distances, nombre_min_aer
     for i in 1:nombre_aerodromes
         @constraint(model, x[i, i] == 0)
     end
-    # on peut pas aller de arrivee a depart
-    @constraint(model, x[arrivee, depart] == 0)
-    @constraint(model, x[depart, arrivee] == 0)
+
+    #### Contraintes supplémentaires du problème ####
+
+    # Contrainte de nombre minimal d'aérodromes à visiter
+    @constraint(model, sum(sum(x[i, j] for j in 1:nombre_aerodromes if j != i) for i in 1:nombre_aerodromes) >= nombre_min_aerodromes - 1)
+
+
+    # Contrainte des régions
+    for r in 0:nombre_regions
+        @constraint(model, sum(x[i, j] for i in 1:nombre_aerodromes, j in 1:nombre_aerodromes if regions[i] == r || regions[j] == r) >= 1)
+    end
+
+    # Contrainte de rayon maximal
+    for i in 1:nombre_aerodromes
+        for j in 1:nombre_aerodromes
+            @constraint(model, x[i, j] * distances[i, j] <= rayon)
+        end
+    end
 
 
 
@@ -148,14 +150,6 @@ function solve_DFJ_(nombre_aerodromes, depart, arrivee, distances, nombre_min_ae
     # Fonction objectif : minimiser la distance totale
     @objective(model, Min, sum(distances[i, j] * x[i, j] for i in 1:nombre_aerodromes, j in 1:nombre_aerodromes))
 
-    # Contrainte de rayon maximal
-    for i in 1:nombre_aerodromes
-        for j in 1:nombre_aerodromes
-            if distances[i, j] > rayon
-                @constraint(model, x[i, j] == 0)
-            end
-        end
-    end
 
     # conservation du nombre d'arcs entrants et sortants sauf pour le depart et l'arrivee
     for i in 1:nombre_aerodromes
@@ -169,14 +163,9 @@ function solve_DFJ_(nombre_aerodromes, depart, arrivee, distances, nombre_min_ae
 
     end
 
-    # Contrainte de nombre minimal d'aérodromes à visiter
-    @constraint(model, sum(sum(x[i, j] for j in 1:nombre_aerodromes if j != i) for i in 1:nombre_aerodromes) >= nombre_min_aerodromes)
-
-    # Contrainte de régions
-    for r in 0:nombre_regions
-        @constraint(model, sum(x[i, j] for i in 1:nombre_aerodromes, j in 1:nombre_aerodromes if regions[i] == r || regions[j] == r) >= 1)
-    end
-
+    # on peut pas aller de arrivee a depart
+    @constraint(model, x[arrivee, depart] == 0)
+    @constraint(model, x[depart, arrivee] == 0)
 
     # on ne peut pas visiter un aerodrome plus d'une fois
     for i in 1:nombre_aerodromes
@@ -191,10 +180,24 @@ function solve_DFJ_(nombre_aerodromes, depart, arrivee, distances, nombre_min_ae
     for i in 1:nombre_aerodromes
         @constraint(model, x[i, i] == 0)
     end
-    # on peut pas aller de arrivee a depart
-    @constraint(model, x[arrivee, depart] == 0)
-    @constraint(model, x[depart, arrivee] == 0)
 
+    #### Contraintes supplémentaires du problème ####
+
+    # Contrainte de nombre minimal d'aérodromes à visiter
+    @constraint(model, sum(sum(x[i, j] for j in 1:nombre_aerodromes if j != i) for i in 1:nombre_aerodromes) >= nombre_min_aerodromes - 1)
+
+
+    # Contrainte des régions
+    for r in 0:nombre_regions
+        @constraint(model, sum(x[i, j] for i in 1:nombre_aerodromes, j in 1:nombre_aerodromes if regions[i] == r || regions[j] == r) >= 1)
+    end
+
+    # Contrainte de rayon maximal
+    for i in 1:nombre_aerodromes
+        for j in 1:nombre_aerodromes
+            @constraint(model, x[i, j] * distances[i, j] <= rayon)
+        end
+    end
 
 
     # Résolution initiale sans contrainte d'élimination de sous-tours
