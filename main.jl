@@ -10,11 +10,11 @@ include("utils.jl")
 
 relax = false
 # choisir une instance
-instance = "instance_100_1"
+instance = "instance_50_1"
 println("Reading instance from ", intances_to_paths[instance])
 
 #  choisir une Fonction de résolution
-methode = "RLT"
+methode = "DFJ"
 println("Using ", methode, " method")
 formulation = methode == "RLT" ? solve_RTL : methode == "MTZ" ? solve_MTZ : methode == "DFJ" ? solve_DFJ : methode == "GCS" ? solve_GCS : methode == "SF" ? solve_SF : error("Methode inconnue")
 
@@ -48,6 +48,9 @@ objective = objective_value(model)
 solving_time = solve_time(model)
 
 # stocker la solution dans un fichier
+if relax
+    methode = methode * "_relax"
+end
 path_solution = "Instances/solutions/solution_" * instance * "_" * methode * ".txt"
 f = open(path_solution, "w")
 for i in 1:nombre_aerodromes-1
@@ -64,8 +67,10 @@ write(f, string(x[nombre_aerodromes, nombre_aerodromes]))
 # write model performance, time, gap to relaxed solution, ...
 write(f, "\n")
 write(f, "Objective value: " * string(objective) * "\n")
-# write(f, "MIP gap: " * string(mip_gap) * "\n")
 write(f, "Solving time: " * string(solving_time) * "s\n")
-
+if !relax
+    write(f, "Number of nodes: " * string(MOI.get(model, MOI.NodeCount())) * "\n")
+    write(f, "Number of simplex iterations: " * string(MOI.get(model, MOI.SimplexIterations())) * "\n")
+end
 
 close(f)
