@@ -3,27 +3,21 @@ using JuMP, Gurobi
 
 function solve_MTZ(nombre_aerodromes, depart, arrivee, distances, nombre_min_aerodromes, nombre_regions, regions, rayon, relax=false)
     model = Model(Gurobi.Optimizer)
+    set_silent(model)
+    set_optimizer_attribute(model, "TimeLimit", 180)
 
     # Variables : x[i,j] = 1 si l'arc (i, j) est dans le chemin, 0 sinon
     if relax
-        @variable(model, x[1:nombre_aerodromes, 1:nombre_aerodromes])
+        @variable(model, 0 <= x[1:nombre_aerodromes, 1:nombre_aerodromes] <= 1)
 
         @variable(model, u[1:nombre_aerodromes] >= 0)
-
-        for i in 1:nombre_aerodromes, j in 1:nombre_aerodromes
-            @constraint(model, x[i, j] >= 0)
-            @constraint(model, x[i, j] <= 1)
-        end
     else
         @variable(model, x[1:nombre_aerodromes, 1:nombre_aerodromes], Bin)
         @variable(model, u[1:nombre_aerodromes] >= 0, Int)
     end
 
-
-
-
     # Objective function: minimize the total distance
-    @objective(model, Min, sum(distances[i, j] * x[i, j] for i in 1:nombre_aerodromes, j in 1:nombre_aerodromes))
+    @objective(model, Min, sum(distances[i, j] * x[i, j] for i in 1:nombre_aerodromes, j in 1:nombre_aerodromes if i != j))
 
     # conservation du nombre d'arcs entrants et sortants sauf pour le depart et l'arrivee
     for i in 1:nombre_aerodromes
@@ -37,13 +31,14 @@ function solve_MTZ(nombre_aerodromes, depart, arrivee, distances, nombre_min_aer
     end
 
     # on peut pas aller de arrivee a depart
-    @constraint(model, x[arrivee, depart] == 0)
-    @constraint(model, x[depart, arrivee] == 0)
-
-    # on peut pas aller de i a i
+    # @constraint(model, x[arrivee, depart] == 0)
+    # @constraint(model, x[depart, arrivee] == 0)
+    # on ne peut pas visiter un aerodrome plus d'une fois
     for i in 1:nombre_aerodromes
-        @constraint(model, x[i, i] == 0)
+        @constraint(model, sum(x[i, j] for j in 1:nombre_aerodromes if j != i) <= 1)
+        @constraint(model, sum(x[j, i] for j in 1:nombre_aerodromes if j != i) <= 1)
     end
+
 
     #### Contraintes supplémentaires du problème ####
 
@@ -58,6 +53,7 @@ function solve_MTZ(nombre_aerodromes, depart, arrivee, distances, nombre_min_aer
 
     # Contrainte de rayon maximal
     for i in 1:nombre_aerodromes
+        @constraint(model, x[i, i] == 0)
         for j in 1:nombre_aerodromes
             @constraint(model, x[i, j] * distances[i, j] <= rayon)
         end
@@ -70,10 +66,7 @@ function solve_MTZ(nombre_aerodromes, depart, arrivee, distances, nombre_min_aer
         end
     end
 
-    # on ne peut pas visiter un aerodrome plus d'une fois
-    for i in 1:nombre_aerodromes
-        @constraint(model, sum(x[i, j] for j in 1:nombre_aerodromes if j != i) <= 1)
-    end
+
 
 
     optimize!(model)

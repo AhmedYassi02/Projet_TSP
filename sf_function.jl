@@ -4,6 +4,7 @@ using JuMP, Gurobi
 function solve_SF(nombre_aerodromes, depart, arrivee, distances, nombre_min_aerodromes, nombre_regions, regions, rayon, relax=false)
     model = Model(Gurobi.Optimizer)
     set_silent(model)
+    set_optimizer_attribute(model, "TimeLimit", 180)
 
     #### Contraintes de base ####
 
