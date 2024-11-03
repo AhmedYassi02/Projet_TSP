@@ -12,7 +12,10 @@ Les méthodes comparées :
 - Formulation de Miller-Tucker-Zemlin ( MTZ )
 - Formulation Single Flow ( SF )
 - Reformulation-linearization based formulation ( RLT )
-- Formulation Generalized Cutset inequalities ( GCS )
 
 Les formulation sont presentées dans [Integer programming formulations for the elementary shortest path problem](https://www.sciencedirect.com/science/article/abs/pii/S0377221716000084?via%3Dihub)
+
+## Utilisation
+
+Pour utiliser le programme, il suffit d'ouvrir le fichier `main.jl`, modifier les paramètres `method` , `ìnstance` et `relax` et de lancer le programme.
 
