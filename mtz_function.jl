@@ -3,7 +3,7 @@ using JuMP, Gurobi
 
 function solve_MTZ(nombre_aerodromes, depart, arrivee, distances, nombre_min_aerodromes, nombre_regions, regions, rayon, relax=false)
     model = Model(Gurobi.Optimizer)
-    set_silent(model)
+    # set_silent(model)
     set_optimizer_attribute(model, "TimeLimit", 180)
 
     # Variables : x[i,j] = 1 si l'arc (i, j) est dans le chemin, 0 sinon

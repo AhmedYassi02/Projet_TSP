@@ -35,24 +35,17 @@ function solve_RTL(nombre_aerodromes, depart, arrivee, distances, nombre_min_aer
             @constraint(model, sum(x[i, j] for j in 1:nombre_aerodromes if j != i) - sum(x[j, i] for j in 1:nombre_aerodromes if j != i) == -1)
         end
     end
-    # for i in 1:nombre_aerodromes, j in 1:nombre_aerodromes
-    #     @constraint(model, x[i, j] <= 1)
-    #     @constraint(model, x[i, j] >= 0)
-    # end
 
     # on ne peut pas visiter un aerodrome plus d'une fois
     for i in 1:nombre_aerodromes
+        @constraint(model, x[i, i] == 0)
         @constraint(model, sum(x[i, j] for j in 1:nombre_aerodromes if j != i) <= 1)
+        @constraint(model, sum(x[j, i] for j in 1:nombre_aerodromes if j != i) <= 1)
     end
 
     # on peut pas aller de arrivee a depart
     @constraint(model, x[arrivee, depart] == 0)
     @constraint(model, x[depart, arrivee] == 0)
-
-    # on peut pas aller de i a i
-    for i in 1:nombre_aerodromes
-        @constraint(model, x[i, i] == 0)
-    end
 
     #### Contraintes supplémentaires du problème ####
 
@@ -83,14 +76,13 @@ function solve_RTL(nombre_aerodromes, depart, arrivee, distances, nombre_min_aer
         end
     end
 
-    # Additional RTL constraints from the paper
     for j in 1:nombre_aerodromes
         if j != depart && j != arrivee
             @constraint(model, sum(alpha[i, j] for i in 1:nombre_aerodromes if i != j) - sum(beta[j, k] for k in 1:nombre_aerodromes if k != j) == 0)
         end
     end
 
-    # pour tout j != arrivee et l'arc 
+    # pour tout j != arrivee
     for j in 1:nombre_aerodromes
         if j != arrivee
             @constraint(model, x[depart, j] + sum(alpha[i, j] for i in 1:nombre_aerodromes if i != j && i != depart) - sum(beta[j, k] for k in 1:nombre_aerodromes if k != j) == 0)

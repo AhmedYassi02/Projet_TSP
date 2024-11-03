@@ -4,7 +4,7 @@ using JuMP, Gurobi
 function solve_SF(nombre_aerodromes, depart, arrivee, distances, nombre_min_aerodromes, nombre_regions, regions, rayon, relax=false)
     model = Model(Gurobi.Optimizer)
     set_silent(model)
-    set_optimizer_attribute(model, "TimeLimit", 180)
+    # set_optimizer_attribute(model, "TimeLimit", 180)
 
     #### Contraintes de base ####
 
@@ -42,19 +42,11 @@ function solve_SF(nombre_aerodromes, depart, arrivee, distances, nombre_min_aero
         end
     end
 
-
-    # on ne peut pas visiter un aerodrome plus d'une fois
-    for i in 1:nombre_aerodromes
-        @constraint(model, sum(x[i, j] for j in 1:nombre_aerodromes if j != i) <= 1)
-    end
-
-    # on peut pas aller de arrivee a depart
-    @constraint(model, x[arrivee, depart] == 0)
-    @constraint(model, x[depart, arrivee] == 0)
-
-    # on peut pas aller de i a i
+    # on ne peut pas visiter un aerodrome plus d'une fois + on ne peut pas aller de i a i
     for i in 1:nombre_aerodromes
         @constraint(model, x[i, i] == 0)
+        @constraint(model, sum(x[i, j] for j in 1:nombre_aerodromes if j != i) <= 1)
+        @constraint(model, sum(x[j, i] for j in 1:nombre_aerodromes if j != i) <= 1)
     end
 
     #### Contraintes supplémentaires du problème ####
@@ -92,10 +84,6 @@ function solve_SF(nombre_aerodromes, depart, arrivee, distances, nombre_min_aero
             @constraint(model, z[k] >= 0)
         end
     end
-
-
-
-
 
     optimize!(model)
     println("Minimum distance traveled: ", objective_value(model))

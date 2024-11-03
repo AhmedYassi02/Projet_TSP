@@ -10,11 +10,11 @@ include("utils.jl")
 
 relax = false
 # choisir une instance
-instance = "instance_50_1"
+instance = "instance_30_1"
 println("Reading instance from ", intances_to_paths[instance])
 
 #  choisir une Fonction de résolution
-methode = "DFJ"
+methode = "SF"
 println("Using ", methode, " method")
 formulation = methode == "RLT" ? solve_RTL : methode == "MTZ" ? solve_MTZ : methode == "DFJ" ? solve_DFJ : methode == "GCS" ? solve_GCS : methode == "SF" ? solve_SF : error("Methode inconnue")
 
